@@ -1,0 +1,19 @@
+{
+  "name": "mspal-client",
+  "version": "0.1.0",
+  "description": "a client for mspal, a tool connect to mspal server",
+  "scripts": {
+    "dev": "node electron.js",
+    "build": "node electron.js build"
+  },
+  "author": "revival0728",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^35.0.3",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.0.14",
+    "tailwindcss": "^4.0.14"
+  }
+}

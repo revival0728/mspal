@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .control-panel {
+    @apply absolute left-0 top-0 h-[90vh] w-screen flex flex-col justify-between items-center z-1;
+  }
+  .panel-btn {
+    @apply h-fit w-fit;
+  }
+  .play {
+    @apply block h-[70px] w-[70px];
+    @apply bg-[url(./assets/play_arrow.svg)] bg-cover;
+  }
+  .pause {
+    @apply block h-[70px] w-[70px];
+    @apply bg-[url(./assets/pause.svg)] bg-cover;
+  }
+  .skip-next {
+    @apply block h-[70px] w-[70px];
+    @apply bg-[url(./assets/skip_next.svg)] bg-cover;
+  }
+  .volume-icon {
+    @apply block h-[35px] w-[35px];
+    @apply bg-[url(./assets/volume.svg)] bg-cover;
+  }
+  .connection-panel {
+    @apply absolute left-0 top-0 w-screen h-[90vh] flex justify-center items-center z-1;
+  }
+  .connection-panel .input-group {
+    @apply w-fit flex justify-center items-center flex-col;
+  }
+  .connection-panel .input-field {
+    @apply my-1 w-80 flex justify-start items-center gap-1;
+  }
+  .connection-panel .input-field .label {
+    @apply inline-block px-5 py-2 bg-gray-300 w-18 text-center rounded-l-sm;
+  }
+  .connection-panel .input-field input {
+    @apply px-3 py-2 bg-white border rounded-r-sm w-60;
+  }
+  .connection-panel .input-field input[type="checkbox"] {
+    @apply h-7 w-7 py-2 bg-white border rounded-r-sm;
+  }
+  .connection-panel button {
+    @apply absolute px-5 py-2 mt-5 bg-blue-400 h-fit w-35 transition flex justify-center items-center rounded-md;
+  }
+  .connection-panel .btn-animate {
+    @apply mt-5 h-[51px] w-35 rounded-md opacity-30 z-0 peer-[.connecting]:animate-ping peer-[.connecting]:bg-blue-400;
+  }
+  .connection-panel .connecting svg {
+    @apply fill-white;
+  }
+  input[type="range"].volume {
+    @apply accent-black;
+  }
+}

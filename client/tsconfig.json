@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "lib": ["es2024", "dom"],
+    "module": "node16",
+    "target": "es2024",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node16",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "noImplicitAny": true,
+    "removeComments": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "**/dist/*"]
+}

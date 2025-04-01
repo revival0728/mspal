@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <meta
+      http-equiv="X-Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <link href="./global.css" rel="stylesheet">
+    <title>MSPal Client</title>
+  </head>
+  <body class="font-sans">
+    <div id="version-info-panel" class="absolute left-0 top-0 m-1 bg-transparent z-0 select-none">
+      <!-- show version info -->
+      <p id="version-info" class="text-xs text-stone-400"></p>
+    </div>
+    <div id="connection-panel" class="hidden">
+      <!-- connection pannel -->
+      <div class="input-group">
+        <div class="input-field">
+          <span class="label">URL</span>
+          <input id="connect-url" type="url" placeholder="example.com" required />
+        </div>
+        <div class="input-field">
+          <span class="label">KEY</span>
+          <input id="connect-key" type="text" placeholder="GXR1E*V%2.=6Tly*qMm_x6ML2aU57=w4zpy3ic3s" required />
+        </div>
+        <div class="input-field">
+          <span class="label">SSL</span>
+          <input id="connect-ssl" type="checkbox" class="" />
+        </div>
+        <div>
+          <button id="connect-btn" class="peer z-1">
+            <svg xmlns="http://www.w3.org/2000/svg" height="35px" viewBox="0 -960 960 960" width="35px">
+              <path d="M204-150q-57-55-90.5-129.5T80-440q0-83 31.5-156T197-723q54-54 127-85.5T480-840q83 0 156 31.5T763-723q54 54 85.5 127T880-440q0 86-33.5 161T756-150l-56-56q46-44 73-104.5T800-440q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 69 27 129t74 104l-57 57Zm113-113q-35-33-56-78.5T240-440q0-100 70-170t170-70q100 0 170 70t70 170q0 53-21 99t-56 78l-57-57q25-23 39.5-54t14.5-66q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 36 14.5 66.5T374-320l-57 57Zm163-97q-33 0-56.5-23.5T400-440q0-33 23.5-56.5T480-520q33 0 56.5 23.5T560-440q0 33-23.5 56.5T480-360Z"/>
+            </svg>
+          </button>
+          <div class="btn-animate"></div>
+        </div>
+      </div>
+    </div>
+    <div id="control-panel" class="hidden">
+      <!-- control panel -->
+      <div class="h-fit w-fit"></div>
+      <div class="h-fit w-full flex flex-col justify-center items-center gap-1">
+        <div class="mb-3">
+          <p class="text-6xl font-semibold">Media Title</p>
+        </div>
+        <div class="w-full flex justify-center items-center">
+          <button id="play-pause" class="panel-btn play"></button>
+          <button id="skip-next" class="panel-btn skip-next"></button>
+        </div>
+        <div class="w-fit flex gap-1">
+          <span class="volume-icon"></span>
+          <input id="volume" type="range" class="volume" min="0" max="100" value="50" step="0.1"/>
+        </div>
+      </div>
+      <div class="basis-2 shrink h-fit w-fit flex gap-1 opacity-40">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px">
+          <path d="m600-200-56-57 143-143H300q-75 0-127.5-52.5T120-580q0-75 52.5-127.5T300-760h20v80h-20q-42 0-71 29t-29 71q0 42 29 71t71 29h387L544-624l56-56 240 240-240 240Z"/>
+        </svg>
+        <p id="next-media-name">Next Media</p>
+      </div>
+    </div>
+  </body>
+  <script src="./config.js"></script>
+  <script src="./renderer.js"></script>
+</html>

@@ -9,7 +9,7 @@ export class MSMan {
   #list: string[] = [];
   #dur: { [f: string]: number } = {};
   #MOD = 1e9 + 7;
-  #cur = 0;
+  #cur = -1;
   #currentInfo: { name: string, dur: number } = { name: "", dur: 0 };
   #PGCache: { id: number, data: string } = { id: -1, data: "" };
   #ffmpeg: FFmpeg = new FFmpeg();
@@ -29,7 +29,6 @@ export class MSMan {
     // Automatically play the next media
     setInterval(() => {
       if(Math.abs(this.progressByRatio() - 1) < 0.00001) {
-        console.log("auto next")
         this.next();
       }
     }, 500);
@@ -80,7 +79,7 @@ export class MSMan {
   #getPackageId(): number {
     const cur = this.#cur;
     const list = this.#list;
-    const id = this.#status === "init" ? cur : (cur + 1) % list.length;
+    const id = (cur + 1) % list.length;
     return id;
   }
   package(): Promise<string> {
@@ -91,7 +90,6 @@ export class MSMan {
       if(PGCache.id === id)
         resolve(PGCache.data);
       const source = list[id];
-      // console.log(`source: ${source}`);
       this.#readFileToUint8Array(source).then((data) => {
         const base64 = this.#uint8ArrayToBase64(data);
         this.#PGCache = {
@@ -128,6 +126,13 @@ export class MSMan {
     this.#accut = 0;
     this.#time = Date.now();
     if(this.#emitNext !== null) this.#emitNext();
+  }
+  initPlay() {
+    // The initial this.#cur = -1
+    // After calling this.next(), the this.#cur = 0, and then emit("next_media")
+    // This will cause automatically playing the next media, in this case, will be media[0]
+    // The handler of "next_media" is writting in host.ts
+    this.next();
   }
   play() {
     this.#time = Date.now();

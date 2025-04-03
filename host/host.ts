@@ -1,5 +1,5 @@
 import hostRoutes from "@/host/routes.ts";
-import { AbortFn, HostAction, Routes } from "@/type.d.ts";
+import { AbortFn, ClientStatus, HostAction, Routes } from "@/type.d.ts";
 import { asyncFn, genKeyOrId, sleep } from "@/utilities.ts";
 import { Term } from "@/term.ts";
 import { MSMan } from "@/host/msman.ts";
@@ -17,7 +17,7 @@ export class Host {
   #name = "dev"
   #clients: { [clientId: string]: WebSocket } = {}
   #deStatus: { [clientId: string]: number } = {} //delivery status
-  #clientStatus: { [clientId: string]: "ready" | "fetching" } = {}
+  #clientStatus: { [clientId: string]: ClientStatus } = {}
   #broadcastOrder: string[] = []
   #clientPing: { [clientId: string]: number } = {}
   #maxPing: number = 0
@@ -30,15 +30,14 @@ export class Host {
   get authKey() { return this.#authKey; }
   get name() { return this.#name; }
   get lastPingTime() { return this.#lastPingTime; }
+  get clientPing() { return this.#clientPing; }
 
   #genKey(): string {
     const mat = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*-+=_/?.";
     return genKeyOrId(mat, 40);
   }
   constructor() {
-    // TODO: change to random key when publish
     this.#authKey = this.#genKey();
-    // this.#authKey = "dev";
   }
   auth(authkey: string, clientId: string): boolean { 
     if(this.#authKey == authkey) {
@@ -126,6 +125,22 @@ export class Host {
     order.sort((a, b) => clientPing[b] - clientPing[a]);
     this.#broadcastOrder = order;
   }
+  setClientStatus(clientId: string, status: ClientStatus) {
+    this.#clientStatus[clientId] = status;
+  }
+  setAllClientStatus(status: ClientStatus) {
+    Object.keys(this.#clients).forEach(clientId => {
+      this.setClientStatus(clientId, status);
+    })
+  }
+  allClientReady(): boolean {
+    let ready = true;
+    Object.keys(this.#clients).forEach(clientId => {
+      if(this.#clientStatus[clientId] !== "ready")
+        ready = false;
+    });
+    return ready;
+  }
   // first run when msman loaded in main()
   initChuncks(): Promise<void> {
     return new Promise((resolve, _reject) => {
@@ -205,12 +220,31 @@ function server(host: Host, routes: Routes): AbortFn {
 }
 
 async function main() {
+  // TODO: strongly binds msman.play(), .pause() with bridge.emit(). Be careful it could be easy to break something
   const bridge = new EventEmitter();
   const host = new Host();
   const term = new Term();
   const msman = new MSMan(supprotedMediaType, () => bridge.emit("next_media"));
+  host.emitCalcBroadcastOrder = () => bridge.emit("calc_BCOrder");
   bridge.on("next_media", () => {
     host.deliverRestAll();
+    const checkLoad = () => {
+      const interval = setInterval(() => {
+        if(host.allClientReady()) {
+          host.broadcast(asyncFn(s => s.send(Inst.PLAY)));
+          host.msman?.play();
+          clearInterval(interval);
+        }
+      }, 300);
+    }
+    const checkFetchInterval = setInterval(() => {
+      if(host.allClientReady()) {
+        host.broadcast(asyncFn(s => s.send(Inst.NEXT)));
+        host.setAllClientStatus("loading");
+        checkLoad();
+        clearInterval(checkFetchInterval);
+      }
+    }, 300);
     host.startMediaDelivery();
   });
   bridge.on("calc_BCOrder", () => {
@@ -223,12 +257,21 @@ async function main() {
   host.initChuncks();
   const abort = server(host, hostRoutes);
   term.abort = abort;
-  host.emitCalcBroadcastOrder = () => bridge.emit("calc_BCOrder");
   term.addCmd("exit", async (_insList) => {
     await host.close();
   });
-  term.addCmd("ping", (_insList) => {
-    host.ping();
+  term.addCmd("ping", (insList) => {
+    if(insList.args[0] === "status") {
+      const ping = host.clientPing;
+      const out = Object.keys(ping).map(clientId => {
+        return `  ${clientId}: ${ping[clientId]}ms`
+      });
+      term.println(`Ping Status:\n${out.length > 0 ? out.join("\n") : "no client"}`);
+    } else if(insList.args.length === 0 && Object.keys(insList.kwargs).length === 0) {
+      host.ping();
+    } else {
+      term.println("invalid use of ping");
+    }
   });
   term.addCmd("play", async (_insList) => {
     await host.broadcast(asyncFn(s => s.send(Inst.PLAY)));
@@ -238,8 +281,8 @@ async function main() {
     await host.broadcast(asyncFn(s => s.send(Inst.PAUSE)));
     host.msman?.pause();
   });
-  term.addCmd("next", async (_insList) => {
-    await host.broadcast(asyncFn(s => s.send(Inst.NEXT)));
+  term.addCmd("next", (_insList) => {
+    // msman.next() will cause emitting "next_media"
     host.msman?.next();
   });
   term.addCmd("status", (_insList) => {

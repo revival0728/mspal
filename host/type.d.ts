@@ -18,3 +18,5 @@ export type InsList = {
 };
 
 export type NextMediaEventEmitter = () => void;
+
+export type ClientStatus = "ready" | "fetching" | "loading";

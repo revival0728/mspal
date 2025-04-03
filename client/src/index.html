@@ -5,7 +5,7 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
+      content="default-src 'self'; script-src 'self'; media-src blob:;"
     />
     <meta
       http-equiv="X-Content-Security-Policy"
@@ -43,13 +43,17 @@
           <div class="btn-animate"></div>
         </div>
       </div>
+      <div class="relative self-end">
+        <span id="err-msg" class="bg-cover block w-14 h-14"></span>
+      </div>
     </div>
     <div id="control-panel" class="hidden">
       <!-- control panel -->
+      <audio id="audio"></audio>
       <div class="h-fit w-fit"></div>
       <div class="h-fit w-full flex flex-col justify-center items-center gap-1">
-        <div class="mb-3">
-          <p class="text-6xl font-semibold">Media Title</p>
+        <div id="media-name-container" class="mb-3 py-2 max-w-[90vw] overflow-clip">
+          <p id="media-name" class="text-6xl font-semibold w-fit text-nowrap">😄-🎵-🎵-🎵-😄</p>
         </div>
         <div class="w-full flex justify-center items-center">
           <button id="play-pause" class="panel-btn play"></button>
@@ -57,14 +61,14 @@
         </div>
         <div class="w-fit flex gap-1">
           <span class="volume-icon"></span>
-          <input id="volume" type="range" class="volume" min="0" max="100" value="50" step="0.1"/>
+          <input id="volume" type="range" class="volume" min="0" max="200" value="100" step="0.1"/>
         </div>
       </div>
       <div class="basis-2 shrink h-fit w-fit flex gap-1 opacity-40">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px">
           <path d="m600-200-56-57 143-143H300q-75 0-127.5-52.5T120-580q0-75 52.5-127.5T300-760h20v80h-20q-42 0-71 29t-29 71q0 42 29 71t71 29h387L544-624l56-56 240 240-240 240Z"/>
         </svg>
-        <p id="next-media-name">Next Media</p>
+        <p id="next-media-name">███████████</p>
       </div>
     </div>
   </body>

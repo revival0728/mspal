@@ -28,51 +28,121 @@ window.addEventListener("DOMContentLoaded", async () => {
       controlPanel.classList.add("control-panel");
     }
   }
-  setupMsgBridgeListener();
+
+  const audioElement = document.getElementById("audio") as HTMLAudioElement;
+  const audioCtx = new AudioContext();
+  const track = new MediaElementAudioSourceNode(audioCtx, {
+    mediaElement: audioElement
+  });
+
+  const gainNode = new GainNode(audioCtx);
+  const volCtrl = document.getElementById("volume") as HTMLInputElement;
+  volCtrl.addEventListener("input", () => {
+    gainNode.gain.value = Number(volCtrl.value) / 100;
+  });
+
+  track.connect(gainNode).connect(audioCtx.destination);
+
+  setupMsgBridgeListener(audioCtx);
 });
 
-const setupMsgBridgeListener = () => {
+const setupMsgBridgeListener = (audioCtx: AudioContext) => {
   const msgBridgeOn = (e: string, h: (...args: string[]) => void) => {
     ipcRenderer.on(e, (_event, ...args: string[]) => {
       h(...args);
     })
   };
   msgBridgeOn("play", () => {
-    const ppBtn = document.getElementById("play-pause");
-    if(ppBtn instanceof HTMLButtonElement) {
-      ppBtn.classList.toggle("pause");
-      ppBtn.classList.toggle("play");
+    const ppBtn = document.getElementById("play-pause") as HTMLButtonElement;
+    const audioElement = document.getElementById("audio") as HTMLAudioElement;
+    if(audioCtx.state === "suspended") {
+      audioCtx.resume();
     }
+    audioElement.play();
+    ppBtn.classList.add("pause");
+    ppBtn.classList.remove("play");
   });
   msgBridgeOn("pause", () => {
-    const ppBtn = document.getElementById("play-pause");
-    if(ppBtn instanceof HTMLButtonElement) {
-      ppBtn.classList.toggle("pause");
-      ppBtn.classList.toggle("play");
+    const ppBtn = document.getElementById("play-pause") as HTMLButtonElement;
+    const audioElement = document.getElementById("audio") as HTMLAudioElement;
+    if(audioCtx.state === "suspended") {
+      audioCtx.resume();
     }
+    audioElement.pause();
+    ppBtn.classList.remove("pause");
+    ppBtn.classList.add("play");
   });
-  msgBridgeOn("next", async () => {
-    const nextMeida = await ipcRenderer.invoke("get-next-media");
-    const url = URL.createObjectURL(nextMeida);
+  msgBridgeOn("next", () => {
+    ipcRenderer.invoke("get-next-media").then(nextMedia => {
+      const blob = new Blob([nextMedia]);
+      const url = URL.createObjectURL(blob);
+      const audioElement = document.getElementById("audio") as HTMLAudioElement;
+      URL.revokeObjectURL(audioElement.src);
+      audioElement.src = url;
+      ipcRenderer.invoke("ready");
+    });
+    ipcRenderer.invoke("get-next-media-name").then(name => {
+      const mnPara = document.getElementById("media-name") as HTMLParagraphElement;
+      const mnContainer = document.getElementById("media-name-container") as HTMLDivElement;
+      mnPara.innerText = name;
+      if(mnContainer.clientWidth < mnPara.clientWidth) {
+        mnContainer.classList.add("display-overflow");
+      } else {
+        mnContainer.classList.remove("display-overflow");
+      }
+    });
   });
   msgBridgeOn("next-media-name", (mediaName) => {
-    const nextPara = document.getElementById("next-media-name");
-    if(nextPara instanceof HTMLParagraphElement) {
-      nextPara.innerText = mediaName;
-    }
+    const nextPara = document.getElementById("next-media-name") as HTMLParagraphElement;
+    nextPara.innerText = mediaName;
+    ipcRenderer.invoke("push-next-media-name", mediaName);
   });
   msgBridgeOn("client-connected", (connected) => {
     if(connected === "true") {
-      const connectionPanel = document.getElementById("connection-panel");
-      const controlPanel = document.getElementById("control-panel");
-      if(connectionPanel instanceof HTMLDivElement) {
-        connectionPanel.classList.remove("connection-panel");
-        connectionPanel.classList.add("hidden");
-      }
-      if(controlPanel instanceof HTMLDivElement) {
-        controlPanel.classList.remove("hidden");
-        controlPanel.classList.add("control-panel");
-      }
+      const connectionPanel = document.getElementById("connection-panel") as HTMLDivElement;
+      connectionPanel.classList.remove("connection-panel");
+      connectionPanel.classList.add("hidden");
+
+      const controlPanel = document.getElementById("control-panel") as HTMLDivElement;
+      controlPanel.classList.remove("hidden");
+      controlPanel.classList.add("control-panel");
+    } else {
+      const connectBtn = document.getElementById("connect-btn") as HTMLButtonElement;
+      connectBtn.classList.remove("connecting");
+
+      const errMsg = document.getElementById("err-msg") as HTMLSpanElement;
+      errMsg.classList.add("disconnected");
+      errMsg.classList.remove("hidden");
     }
+  });
+  msgBridgeOn("client-closed", () => {
+    // clean up preivous connection
+    const audioElement = document.getElementById("audio") as HTMLAudioElement;
+    audioElement.pause();
+    audioElement.src = "";
+    const ppBtn = document.getElementById("play-pause") as HTMLButtonElement;
+    ppBtn.classList.remove("pause");
+    ppBtn.classList.add("play");
+    const mnPara = document.getElementById("media-name") as HTMLParagraphElement;
+    mnPara.innerText = "😄-🎵-🎵-🎵-😄";
+    mnPara.classList.remove("display-overflow");
+    const nmnPara = document.getElementById("next-media-name") as HTMLParagraphElement;
+    nmnPara.innerText = "███████████";
+
+    const connectionPanel = document.getElementById("connection-panel") as HTMLDivElement;
+    connectionPanel.classList.add("connection-panel");
+    connectionPanel.classList.remove("hidden");
+
+    const controlPanel = document.getElementById("control-panel") as HTMLDivElement;
+    controlPanel.classList.add("hidden");
+    controlPanel.classList.remove("control-panel");
+
+    const connectBtn = document.getElementById("connect-btn") as HTMLButtonElement;
+    connectBtn.classList.remove("connecting");
+
+
+    const errMsg = document.getElementById("err-msg") as HTMLSpanElement;
+    errMsg.classList.add("disconnected");
+    errMsg.classList.remove("hidden");
   });
 }

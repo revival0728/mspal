@@ -4,7 +4,6 @@ import fs from "fs";
 
 export class FS {
   #root: string = "";
-  #hostName: string = "";
   #hostRoot: string = "";
 
   constructor() {
@@ -16,14 +15,13 @@ export class FS {
     this.#root = root;
   }
   setHostName(hostName: string) {
-    this.#hostName = hostName;
     const hostRoot = path.join(this.#root, hostName);
     if(!fs.existsSync(hostRoot)) {
       fs.mkdirSync(hostRoot, { recursive: true });
     }
     this.#hostRoot = hostRoot;
   }
-  getMedia(media: string): Promise<Blob> | undefined {
+  getMedia(media: string): Promise<Buffer> | undefined {
     const mediaPath = path.join(this.#hostRoot, media);
     if(!fs.existsSync(mediaPath)) return undefined;
     return new Promise((resolve, reject) => {
@@ -31,7 +29,7 @@ export class FS {
         if(err) {
           reject(err);
         } else {
-          resolve(new Blob([data]));
+          resolve(data);
         }
       });
     });

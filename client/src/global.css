@@ -7,27 +7,33 @@
   .panel-btn {
     @apply h-fit w-fit;
   }
-  .play {
+  .control-panel .play {
     @apply block h-[70px] w-[70px];
     @apply bg-[url(./assets/play_arrow.svg)] bg-cover;
   }
-  .pause {
+  .control-panel .pause {
     @apply block h-[70px] w-[70px];
     @apply bg-[url(./assets/pause.svg)] bg-cover;
   }
-  .skip-next {
+  .control-panel .skip-next {
     @apply block h-[70px] w-[70px];
     @apply bg-[url(./assets/skip_next.svg)] bg-cover;
   }
-  .volume-icon {
+  .control-panel .volume-icon {
     @apply block h-[35px] w-[35px];
     @apply bg-[url(./assets/volume.svg)] bg-cover;
+  }
+  .control-panel input[type="range"].volume {
+    @apply accent-black;
+  }
+  .control-panel .display-overflow {
+    @apply relative animate-[leftright_10s_infinite_alternate_ease-in-out];
   }
   .connection-panel {
     @apply absolute left-0 top-0 w-screen h-[90vh] flex justify-center items-center z-1;
   }
   .connection-panel .input-group {
-    @apply w-fit flex justify-center items-center flex-col;
+    @apply absolute w-fit flex justify-center items-center flex-col;
   }
   .connection-panel .input-field {
     @apply my-1 w-80 flex justify-start items-center gap-1;
@@ -50,7 +56,20 @@
   .connection-panel .connecting svg {
     @apply fill-white;
   }
-  input[type="range"].volume {
-    @apply accent-black;
+  .connection-panel .disconnected {
+    @apply bg-[url(./assets/signal_disconnected.svg)];
+  }
+}
+
+@keyframes leftright {
+  0%,
+  20% {
+    transform: translateX(0%);
+    left: 0%;
+  }
+  80%,
+  100% {
+    transform: translateX(-100%);
+    left: 100%;
   }
 }

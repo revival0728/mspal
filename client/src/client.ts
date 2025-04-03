@@ -25,39 +25,43 @@ export default class Client {
   async connect(url: string, key: string, ssl?: boolean): Promise<boolean> {
     console.log("connect()");
 
-    const authUrl = `${ssl ? "https" : "http"}://${url}/auth`;
-    let clientId = "";
-    let success = false;
-    let reGenId = true;
-    do {
-      clientId = genId();
-      console.log("auth");
-      const auth = await fetch(authUrl, {
-        method: "POST",
-        body: JSON.stringify({
-          authKey: key,
-          clientId,
-        })
-      });
-      const json = JSON.parse(await auth.json());
-      success = json.success;
-      if(success) {
-        reGenId = false;
-      } else if(!("reGenId" in json)) {
-        const { msg } = json;
-        console.log(msg);
-        reGenId = false;
-      }
-    } while(reGenId);
-    if(!success) return false;
+    try {
+      const authUrl = `${ssl ? "https" : "http"}://${url}/auth`;
+      let clientId = "";
+      let success = false;
+      let reGenId = true;
+      do {
+        clientId = genId();
+        console.log("auth");
+        const auth = await fetch(authUrl, {
+          method: "POST",
+          body: JSON.stringify({
+            authKey: key,
+            clientId,
+          })
+        });
+        const json = JSON.parse(await auth.json());
+        success = json.success;
+        if(success) {
+          reGenId = false;
+        } else if(!("reGenId" in json)) {
+          const { msg } = json;
+          console.log(msg);
+          reGenId = false;
+        }
+      } while(reGenId);
+      if(!success) return false;
 
-    const wsUrl = `${ssl ? "wss" : "ws"}://${url}/connct?clientId=${clientId}`;
-    const socket = new WebSocket(wsUrl);
+      const wsUrl = `${ssl ? "wss" : "ws"}://${url}/connect?clientId=${clientId}`;
+      const socket = new WebSocket(wsUrl);
 
-    this.#fs.setHostName(btoa(url));
-    this.#clientId = clientId;
-    this.#socket = socket;
-    return true;
+      this.#fs.setHostName(btoa(url));
+      this.#clientId = clientId;
+      this.#socket = socket;
+      return true;
+    } catch {
+      return false;
+    }
   }
   sendToHost(msg: string) {
     if(msg.length > 5) return;
@@ -81,9 +85,14 @@ export default class Client {
         logFn("storeMedia error");
       });
     }
-    // FIXME: socket connection failure
     socket.addEventListener("open", (_event) => {
       logFn("socket open");
+    });
+    socket.addEventListener("close", (_event) => {
+      this.#clientId = null;
+      this.#socket = null;
+      logFn("socket close");
+      emit("client-closed");
     });
     socket.addEventListener("message", (event) => {
       if(typeof event.data !== 'string') return;
@@ -118,15 +127,16 @@ export default class Client {
             break;
           }
           const [name, _chunckCount, ext] = params.map(s => s.slice(1, s.length - 1));
+          emit("next-media-name", name);
+          this.#mediaName = name;
+          this.#mediaExt = ext;
           if(this.#fs.existMedia(name + ext)) {
             logFn("Media already exist");
+            emit("next-media-ready");
             this.sendToHost("CACHE");
             break;
           }
-          emit("next-media-name", name);
           const chunckCount = parseInt(_chunckCount);
-          this.#mediaName = name;
-          this.#mediaExt = ext;
           this.#chunckCount = chunckCount;
           this.#chuncks = new Array(chunckCount).fill("");
           logFn(`name: ${name}, chunck_count: ${chunckCount}, ext: ${ext}`);
@@ -183,7 +193,7 @@ export default class Client {
       }
     });
   }
-  getNextMedia(): Promise<Blob> | undefined {
+  getNextMedia(): Promise<Buffer> | undefined {
     return this.#fs.getMedia(this.#mediaName + this.#mediaExt);
   }
 }

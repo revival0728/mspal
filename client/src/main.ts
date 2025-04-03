@@ -7,9 +7,11 @@ import packageInfo from "../package.json";
 const client = new Client();
 const bridge = new EventEmitter();
 const middleVars: {
-  nextMedia: Blob | null;
+  nextMedia: Buffer | null,
+  nextMediaName: string[],
 } = {
-  nextMedia: null
+  nextMedia: null,
+  nextMediaName: [],
 };
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -20,20 +22,21 @@ const createWindow = () => {
     }
   })
 
-  // catch play, pause, next, next-media-ready, next-media-name events
+  // catch play, pause, next, next-media-ready, next-media-name, client-connected, client-closed events
   bridge.on("play", () => win.webContents.send("play"));
   bridge.on("pause", () => win.webContents.send("pause"));
   bridge.on("next", () => win.webContents.send("next"));
   bridge.on("next-media-name", (mediaName: string) => win.webContents.send("next-media-name", mediaName));
   bridge.on("next-media-ready", async () => {
-    const _nextMeida = await client.getNextMedia();
-    if(_nextMeida) {
-      middleVars.nextMedia = _nextMeida;
-    } else {
+    client.getNextMedia()?.then(nextMedia => {
+      middleVars.nextMedia = nextMedia;
+      client.sendToHost("READY");
+    }).catch(() => {
       console.log("next media not ready");
-    }
+    });
   });
   bridge.on("client-connected", (connected: string) => win.webContents.send("client-connected", connected));
+  bridge.on("client-closed", () => win.webContents.send("client-closed"));
 
   win.loadFile('index.html')
 }
@@ -55,7 +58,12 @@ app.whenReady().then(() => {
       bridge.emit("client-connected", "false");
     }
   });
+  ipcMain.handle("ready", () => client.sendToHost("READY"));
   ipcMain.handle("get-next-media", () => middleVars.nextMedia);
+  ipcMain.handle("get-next-media-name", () => middleVars.nextMediaName.shift());
+  ipcMain.handle("push-next-media-name", (_, name: string) => { 
+    middleVars.nextMediaName.push(name);
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

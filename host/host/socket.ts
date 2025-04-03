@@ -21,7 +21,7 @@ import { asyncFn } from "@/utilities.ts";
  * PING -> response host PING
  * NCHNK -> next media chunck
  * CACHE -> media chached
- * READY -> client is ready to play media
+ * READY -> client has done the last task which needs to check
  *
  */
 
@@ -58,7 +58,7 @@ export function setupSocket(host: Host, socket: WebSocket, clientId: string) {
     const broadcastIns = (i: string) => host.broadcast(asyncFn((s) => s.send(i)));
     switch(ins) {
       case Inst.NEXT:
-        broadcastIns(Inst.NEXT);
+        // This will cause emiting "next_media", then boadcast Inst.NEXT
         host.msman?.next();
         break;
       case Inst.PAUSE:
@@ -66,6 +66,10 @@ export function setupSocket(host: Host, socket: WebSocket, clientId: string) {
         host.msman?.pause();
         break;
       case Inst.PLAY:
+        if(host.msman?.status === "init") {
+          host.msman?.initPlay();
+          break;
+        }
         broadcastIns(Inst.PLAY);
         host.msman?.play();
         break;

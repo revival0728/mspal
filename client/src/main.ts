@@ -38,7 +38,7 @@ const createWindow = () => {
   bridge.on("client-connected", (connected: string) => win.webContents.send("client-connected", connected));
   bridge.on("client-closed", () => win.webContents.send("client-closed"));
 
-  win.loadFile('index.html')
+  win.loadFile(path.join(__dirname, 'index.html'))
 }
 
 app.whenReady().then(() => {

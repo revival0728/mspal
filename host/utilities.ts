@@ -24,3 +24,24 @@ export function asyncFn<A, T>(fn: (...args: A[]) => T): (...args: A[]) => Promis
     });
   }
 }
+
+import "@std/dotenv";
+export function getENV(): { port?: number, cert: string, key: string } | undefined {
+  const { PORT, CERT, KEY, CERT_PATH, KEY_PATH } = Deno.env.toObject();
+  const sop = (s: string, p: string) => {
+    if(s) return s;
+    if(p) return Deno.readTextFileSync(p);
+    return;
+  }
+  try {
+    const cert = sop(CERT, CERT_PATH);
+    const key = sop(KEY, KEY_PATH);
+    const port = PORT ? parseInt(PORT) : undefined;
+    if(!cert || !key) {
+      return;
+    }
+    return { port, cert, key };
+  } catch {
+    return;
+  }
+}

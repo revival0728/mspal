@@ -12,7 +12,7 @@ async function connect(): Promise<[string, WebSocket]> {
   do {
     clientId = genId();
     console.log("auth");
-    const auth = await fetch("http://localhost:3000/auth", {
+    const auth = await fetch("https://localhost:3000/auth", {
       method: "POST",
       body: JSON.stringify({
         authKey: "dev",
@@ -29,12 +29,12 @@ async function connect(): Promise<[string, WebSocket]> {
       reGenId = false;
     }
   } while(reGenId);
-  const socket = new WebSocket(`ws://localhost:3000/connect?clientId=${clientId}`);
+  const socket = new WebSocket(`wss://localhost:3000/connect?clientId=${clientId}`);
   return [clientId, socket];
 }
 
 async function main() {
-  const [clientId, socket] = await connect();
+  const [_clientId, socket] = await connect();
   console.log("socket");
   socket.addEventListener("message", (event) => {
     if(typeof event.data !== 'string') return;

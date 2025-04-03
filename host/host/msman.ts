@@ -45,15 +45,20 @@ export class MSMan {
   async load(folder: string) {
     const ffmpeg = this.#ffmpeg;
     this.#list = [];
-    for await (const post of Deno.readDir(folder)) {
-      if(this.checkFileSupport(post)) {
-        const f = path.join(folder, post.name);
-        const d = await ffmpeg.getDuration(f);
-        this.#dur[f] = d;
-        this.#list.push(f);
+    try {
+      for await (const post of Deno.readDir(folder)) {
+        if(this.checkFileSupport(post)) {
+          const f = path.join(folder, post.name);
+          const d = await ffmpeg.getDuration(f);
+          this.#dur[f] = d;
+          this.#list.push(f);
+        }
       }
+      this.#currentInfo = this.getPackageInfo();
+    } catch {
+      console.log("Error: Failed to load media files. (might caused by ./media/ folder did not exist)");
+      Deno.exit(1);
     }
-    this.#currentInfo = this.getPackageInfo();
   }
   shuffle(seed: number | undefined) {
     const MOD = this.#MOD;

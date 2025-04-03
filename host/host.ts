@@ -1,6 +1,6 @@
 import hostRoutes from "@/host/routes.ts";
 import { AbortFn, ClientStatus, HostAction, Routes } from "@/type.d.ts";
-import { asyncFn, genKeyOrId, sleep } from "@/utilities.ts";
+import { asyncFn, genKeyOrId, getENV, sleep } from "@/utilities.ts";
 import { Term } from "@/term.ts";
 import { MSMan } from "@/host/msman.ts";
 import * as path from "@std/path";
@@ -38,6 +38,7 @@ export class Host {
   }
   constructor() {
     this.#authKey = this.#genKey();
+    // this.#authKey = "dev";
   }
   auth(authkey: string, clientId: string): boolean { 
     if(this.#authKey == authkey) {
@@ -199,13 +200,22 @@ export class Host {
   }
 }
 
-function server(host: Host, routes: Routes): AbortFn {
+function server(host: Host, routes: Routes, term: Term): AbortFn {
   const controller = new AbortController();
   const { signal, abort } = controller;
+  const env = getENV();
+  let cert, key, port;
+  if(env !== undefined) {
+    cert = env.cert;
+    key = env.key;
+    port = env.port;
+  }
   Deno.serve({
     signal,
-    port: 3000,
-    onListen() {},
+    cert,
+    key,
+    port,
+    onListen({ port }) { term.println(`Listening on port ${port}`); },
   },
   async (req): Promise<Response> => {
     const url = new URL(req.url);
@@ -255,7 +265,7 @@ async function main() {
   host.stdout = term.println.bind(term);
   host.msman = msman;
   host.initChuncks();
-  const abort = server(host, hostRoutes);
+  const abort = server(host, hostRoutes, term);
   term.abort = abort;
   term.addCmd("exit", async (_insList) => {
     await host.close();
@@ -297,7 +307,6 @@ async function main() {
     term.println(`${name} | ${msToView(progress)}/${msToView(dur)}`)
   });
 
-  term.println(`Listening on port ${3000}`);
   term.println(`AuthKey: ${host.authKey}`);
 
   term.start();

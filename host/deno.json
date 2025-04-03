@@ -1,7 +1,7 @@
 {
   "name": "@revival0728/mspal-host",
   "description": "A host for mspal, a tool to manage, share, and play media files.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "tasks": {
     "dev": "deno run --allow-net --allow-read --allow-run='ffmpeg,ffprobe' --allow-env --watch host.ts",
     "client": "deno run --allow-net --allow-env --allow-read --unsafely-ignore-certificate-errors test-client.ts",

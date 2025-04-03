@@ -22,7 +22,7 @@ After downloading and installation, open the app `mspal client`
 
 Enter the `URL` and `KEY` from the host.
 
-The `TLS` means encrypted network communication. If your host server enabled the feature, then check it.
+The `TLS` means Transport Layer Security (encrypted network communication). If your host server enabled the feature, then check it.
 
 
 ## The Host

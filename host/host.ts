@@ -6,6 +6,7 @@ import { MSMan } from "@/host/msman.ts";
 import * as path from "@std/path";
 import { Inst } from "@/host/socket.ts";
 import { EventEmitter } from "node:events";
+import { setupTerm } from "@/cmdd.ts";
 
 const supprotedMediaType = [".mp3"];
 
@@ -208,7 +209,7 @@ function server(host: Host, routes: Routes, term: Term): AbortFn {
   if(env !== undefined) {
     cert = env.cert;
     key = env.key;
-    port = env.port;
+    port = env.port ? env.port : 0;
   }
   Deno.serve({
     signal,
@@ -267,45 +268,7 @@ async function main() {
   host.initChuncks();
   const abort = server(host, hostRoutes, term);
   term.abort = abort;
-  term.addCmd("exit", async (_insList) => {
-    await host.close();
-  });
-  term.addCmd("ping", (insList) => {
-    if(insList.args[0] === "status") {
-      const ping = host.clientPing;
-      const out = Object.keys(ping).map(clientId => {
-        return `  ${clientId}: ${ping[clientId]}ms`
-      });
-      term.println(`Ping Status:\n${out.length > 0 ? out.join("\n") : "no client"}`);
-    } else if(insList.args.length === 0 && Object.keys(insList.kwargs).length === 0) {
-      host.ping();
-    } else {
-      term.println("invalid use of ping");
-    }
-  });
-  term.addCmd("play", async (_insList) => {
-    await host.broadcast(asyncFn(s => s.send(Inst.PLAY)));
-    host.msman?.play();
-  });
-  term.addCmd("pause", async (_insList) => {
-    await host.broadcast(asyncFn(s => s.send(Inst.PAUSE)));
-    host.msman?.pause();
-  });
-  term.addCmd("next", (_insList) => {
-    // msman.next() will cause emitting "next_media"
-    host.msman?.next();
-  });
-  term.addCmd("status", (_insList) => {
-    const { name, dur, progress } = msman.getCurrentInfo();
-    const fmt = (n: number) => n.toString().padStart(2, "0");
-    const msToView = (ms: number) => {
-      const _sec = Math.floor(ms / 1000);
-      const sec = fmt(_sec % 60);
-      const min = fmt(Math.floor(_sec / 60));
-      return `${min}:${sec}`;
-    };
-    term.println(`${name} | ${msToView(progress)}/${msToView(dur)}`)
-  });
+  setupTerm({ host, msman, term });
 
   term.println(`AuthKey: ${host.authKey}`);
 

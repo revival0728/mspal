@@ -18,7 +18,8 @@ export class Term {
     return new Promise((resolve, _reject) => {
       const buf = new Uint8Array(100);
       Deno.stdin.read(buf).then((_) => {
-        const indexOfReturnIns = buf.indexOf(13);
+        const i13 = buf.indexOf(13);
+        const indexOfReturnIns = i13 == -1 ? buf.indexOf(10) : i13;
         const lastInput = indexOfReturnIns == -1 ? 0 : indexOfReturnIns;
         resolve(this.#de.decode(buf.slice(0, lastInput)));
       });
@@ -30,6 +31,9 @@ export class Term {
   }
   printStyle() {
     this.print(this.#style);
+  }
+  rprintln(data: string) {
+    this.print(data + "\n");
   }
   println(data: string) {
     this.print(data + '\n');

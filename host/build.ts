@@ -6,8 +6,8 @@ function build() {
         "--allow-net", 
         "--allow-read", 
         "--allow-run=ffmpeg,ffprobe", 
-        "--allow-env", "--output", 
-        `./bin/mspal-host_${target}`, 
+        "--allow-env", 
+        "--output", `./bin/mspal-host_${target}`, 
         "--target", target, 
         "host.ts"
       ],

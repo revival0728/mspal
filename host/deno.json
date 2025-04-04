@@ -1,6 +1,6 @@
 {
   "description": "A host for mspal, a tool to manage, share, and play media files.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "tasks": {
     "host": "deno run --allow-net --allow-read --allow-run=ffmpeg,ffprobe --allow-env host.ts",
     "dev": "deno run --allow-net --allow-read --allow-run=ffmpeg,ffprobe --allow-env --watch host.ts",

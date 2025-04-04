@@ -73,6 +73,7 @@ export class Term {
       }
       if(ins === "exit") {
         this.abort();
+        this.rprintln("Exiting...");
         Deno.exit(0);
       }
       this.start();

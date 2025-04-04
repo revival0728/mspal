@@ -56,7 +56,7 @@ export class MSMan {
       }
       this.#currentInfo = this.getPackageInfo();
     } catch {
-      console.log("Error: Failed to load media files. (might caused by ./media/ folder did not exist)");
+      console.log("Error: Failed to load media files.\n(might caused by ./media/ folder did not exist or emtpy ./media/ folder)");
       Deno.exit(1);
     }
   }

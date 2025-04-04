@@ -11,6 +11,18 @@ export type HostAction = (socket: WebSocket) => Promise<void>;
 
 export type TermCmd = (insList: InsList) => Promise<void> | void;
 
+export type CmdDefine = {
+  [ins: string]: {
+    desc: string,
+    args?: {
+      name: string,
+      desc: string,
+      dyn: boolean,
+    }[],
+    cmd: TermCmd,
+  }
+}
+
 export type InsList = {
   ins: string,
   args: string[],
@@ -20,3 +32,4 @@ export type InsList = {
 export type NextMediaEventEmitter = () => void;
 
 export type ClientStatus = "ready" | "fetching" | "loading";
+

@@ -26,22 +26,25 @@ The `TLS` means Transport Layer Security (encrypted network communication). If y
 
 
 ## The Host
-You can download the host from [Release](https://github.com/revival0728/mspal/releases) or clone it from GitHub and use `deno` to run `host.ts`
+You can download the host from [Release](https://github.com/revival0728/mspal/releases) or clone it from GitHub and use `deno` to run `deno task host`
 
 ### Setup
-1. Install `ffmpeg` on host machine
+1. Install `ffmpeg` on the host machine
 2. Create a directory `media/` and add media files. Currently, it only supports `.mp3`
 
 ### Usage
 The host server only has CLI.
 
-```bash
-play         # play the media
-pause        # pause the media
-next         # skip current media
-status       # show media status
-ping         # test ping to all clients
-ping status  # shows the ping status of all clients
+```
+Commands:
+  exit            :exit the mspal-host
+  ping [status]   :test ping to all clients
+  play            :play the media
+  pause           :pause the media
+  next            :skip current media
+  status          :show the media status
+  help [COMMAND]  :the command to show this text
+If you want to see the help of specific command, use `help [command]`
 ```
 
 The `port` and `KEY` will be displayed after running the host.

@@ -101,6 +101,7 @@ export class Host {
     delete this.#clients[clientId];
     delete this.#deStatus[clientId];
     delete this.#clientStatus[clientId];
+    delete this.#clientPing[clientId];
     this.calcBroadcastOrder();
   }
   ping() {

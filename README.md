@@ -69,3 +69,9 @@ CERT_PATH="certificate path"
 KEY="the private key"
 KEY_PATH="private key path"
 ```
+
+## TODO
+- [ ] fix initial fetching data slow issue
+- [ ] show client ID on client
+- [ ] only allow host to control client panel, client only send operations to the host
+- [ ] disable the control panel after sending operation

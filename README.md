@@ -22,8 +22,10 @@ After downloading and installation, open the app `mspal client`
 
 Enter the `URL` and `KEY` from the host.
 
-The `TLS` means Transport Layer Security (encrypted network communication). If your host server enabled the feature, then check it.
+The `TLS` stands for Transport Layer Security (encrypted network communication). If your host server enabled this feature, check it.
 
+### Notice
+- If you can't hear the music after joining the host, it may be because the previous playing media has not ended. You can fix it by clicking the skip-next button.
 
 ## The Host
 You can download the host from [Release](https://github.com/revival0728/mspal/releases) or clone it from GitHub and use `deno` to run `deno task host`
@@ -44,15 +46,15 @@ Commands:
   next            :skip current media
   status          :show the media status
   help [COMMAND]  :the command to show this text
-If you want to see the help of specific command, use `help [command]`
+If you want to see the help of specific command, use `help [COMMAND]`
 ```
 
 The `port` and `KEY` will be displayed after running the host.
 
-The `URL` given to the client **should not** contains `http`/`https`
+The `URL` given to the client **should not** contain `http`/`https`
 
 ### TLS Setup
-If you are going to expose the host to public network, it is recommended to enable `TLS`
+If you are going to expose the host to the public network, it is recommended to enable `TLS`
 
 To enable `TLS`, configure `CERT`/`CERT_PATH` and `KEY`/`KEY_PATH` in `.env`
 
@@ -69,3 +71,7 @@ CERT_PATH="certificate path"
 KEY="the private key"
 KEY_PATH="private key path"
 ```
+
+## TODO
+- [ ] fix the initial fetching data slow issue
+  - can be fixed by the user by clicking the play button

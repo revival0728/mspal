@@ -54,6 +54,7 @@ const setupMsgBridgeListener = (audioCtx: AudioContext) => {
   };
   msgBridgeOn("play", () => {
     const ppBtn = document.getElementById("play-pause") as HTMLButtonElement;
+    const snBtn = document.getElementById("skip-next") as HTMLButtonElement;
     const audioElement = document.getElementById("audio") as HTMLAudioElement;
     if(audioCtx.state === "suspended") {
       audioCtx.resume();
@@ -61,9 +62,12 @@ const setupMsgBridgeListener = (audioCtx: AudioContext) => {
     audioElement.play();
     ppBtn.classList.add("pause");
     ppBtn.classList.remove("play");
+    ppBtn.disabled = false;
+    snBtn.disabled = false;
   });
   msgBridgeOn("pause", () => {
     const ppBtn = document.getElementById("play-pause") as HTMLButtonElement;
+    const snBtn = document.getElementById("skip-next") as HTMLButtonElement;
     const audioElement = document.getElementById("audio") as HTMLAudioElement;
     if(audioCtx.state === "suspended") {
       audioCtx.resume();
@@ -71,6 +75,8 @@ const setupMsgBridgeListener = (audioCtx: AudioContext) => {
     audioElement.pause();
     ppBtn.classList.remove("pause");
     ppBtn.classList.add("play");
+    ppBtn.disabled = false;
+    snBtn.disabled = false;
   });
   msgBridgeOn("next", () => {
     ipcRenderer.invoke("get-next-media").then(nextMedia => {
@@ -97,7 +103,7 @@ const setupMsgBridgeListener = (audioCtx: AudioContext) => {
     nextPara.innerText = mediaName;
     ipcRenderer.invoke("push-next-media-name", mediaName);
   });
-  msgBridgeOn("client-connected", (connected) => {
+  msgBridgeOn("client-connected", (connected, clientId) => {
     if(connected === "true") {
       const connectionPanel = document.getElementById("connection-panel") as HTMLDivElement;
       connectionPanel.classList.remove("connection-panel");
@@ -106,6 +112,8 @@ const setupMsgBridgeListener = (audioCtx: AudioContext) => {
       const controlPanel = document.getElementById("control-panel") as HTMLDivElement;
       controlPanel.classList.remove("hidden");
       controlPanel.classList.add("control-panel");
+      const clientIdPara = document.getElementById("client-id") as HTMLParagraphElement;
+      clientIdPara.innerText = clientId;
     } else {
       const connectBtn = document.getElementById("connect-btn") as HTMLButtonElement;
       connectBtn.classList.remove("connecting");
@@ -123,11 +131,16 @@ const setupMsgBridgeListener = (audioCtx: AudioContext) => {
     const ppBtn = document.getElementById("play-pause") as HTMLButtonElement;
     ppBtn.classList.remove("pause");
     ppBtn.classList.add("play");
+    ppBtn.disabled = false;
+    const snBtn = document.getElementById("skip-next") as HTMLButtonElement;
+    snBtn.disabled = false;
     const mnPara = document.getElementById("media-name") as HTMLParagraphElement;
     mnPara.innerText = "😄-🎵-🎵-🎵-😄";
     mnPara.classList.remove("display-overflow");
     const nmnPara = document.getElementById("next-media-name") as HTMLParagraphElement;
     nmnPara.innerText = "███████████";
+    const clientIdPara = document.getElementById("client-id") as HTMLParagraphElement;
+    clientIdPara.innerText = "";
 
     const connectionPanel = document.getElementById("connection-panel") as HTMLDivElement;
     connectionPanel.classList.add("connection-panel");

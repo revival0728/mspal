@@ -8,7 +8,7 @@ import { Inst } from "@/host/socket.ts";
 import { EventEmitter } from "node:events";
 import { setupTerm } from "@/cmdd.ts";
 
-const supprotedMediaType = [".mp3"];
+const supportedMediaType = [".mp3", ".ogg"];
 
 export class Host {
   #CHUNCK_SIZE = 2048;
@@ -38,8 +38,12 @@ export class Host {
     return genKeyOrId(mat, 40);
   }
   constructor() {
-    this.#authKey = this.#genKey();
-    // this.#authKey = "dev";
+    const { DEV_MODE } = Deno.env.toObject();
+    if(DEV_MODE === "true") {
+      this.#authKey = "dev";
+    } else {
+      this.#authKey = this.#genKey();
+    }
   }
   auth(authkey: string, clientId: string): boolean { 
     if(this.#authKey == authkey) {
@@ -101,6 +105,7 @@ export class Host {
     delete this.#clients[clientId];
     delete this.#deStatus[clientId];
     delete this.#clientStatus[clientId];
+    delete this.#clientPing[clientId];
     this.calcBroadcastOrder();
   }
   ping() {
@@ -171,8 +176,8 @@ export class Host {
     const status = this.#deStatus[clientId];
     if(status >= this.#chunck_count) return;
     const chunck = this.#chuncks[status];
-    this.directAction(clientId, asyncFn((s) => s.send(Inst.MEDCK(status, chunck))));
     this.#deStatus[clientId] += 1;
+    this.directAction(clientId, asyncFn((s) => s.send(Inst.MEDCK(status, chunck))));
   }
   deliverRest(clientId: string) {
     const status = this.#deStatus[clientId];
@@ -180,8 +185,8 @@ export class Host {
     const chunck_count = this.#chunck_count;
     if(status >= chunck_count) return;
     const chunck = chuncks.slice(status, chunck_count);
-    this.directAction(clientId, asyncFn((s) => s.send(Inst.MRSCK(status, chunck))));
     this.#deStatus[clientId] = chunck_count;
+    this.directAction(clientId, asyncFn((s) => s.send(Inst.MRSCK(status, chunck))));
   }
   deliverRestAll() {
     Object.keys(this.#clients).forEach((clientId) => {
@@ -235,28 +240,28 @@ async function main() {
   const bridge = new EventEmitter();
   const host = new Host();
   const term = new Term();
-  const msman = new MSMan(supprotedMediaType, () => bridge.emit("next_media"));
+  const msman = new MSMan(supportedMediaType, () => bridge.emit("next_media"));
   host.emitCalcBroadcastOrder = () => bridge.emit("calc_BCOrder");
   bridge.on("next_media", () => {
     host.deliverRestAll();
     const checkLoad = () => {
-      const interval = setInterval(() => {
+      const interval = setInterval(async () => {
         if(host.allClientReady()) {
-          host.broadcast(asyncFn(s => s.send(Inst.PLAY)));
-          host.msman?.play();
+          await host.broadcast(asyncFn(s => s.send(Inst.PLAY)));
+          msman.play();
+          host.startMediaDelivery();
           clearInterval(interval);
         }
       }, 300);
     }
-    const checkFetchInterval = setInterval(() => {
+    const checkFetchInterval = setInterval(async () => {
       if(host.allClientReady()) {
-        host.broadcast(asyncFn(s => s.send(Inst.NEXT)));
+        await host.broadcast(asyncFn(s => s.send(Inst.NEXT)));
         host.setAllClientStatus("loading");
         checkLoad();
         clearInterval(checkFetchInterval);
       }
     }, 300);
-    host.startMediaDelivery();
   });
   bridge.on("calc_BCOrder", () => {
     host.calcBroadcastOrder();

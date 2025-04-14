@@ -109,7 +109,7 @@ export function setupTerm({ host, msman, term }: { host: Host, msman: MSMan, ter
         const { desc } = cmdd[ins];
         return `  ${insDisplay(cmdHelp[index])}  :${desc}`;
       });
-      out.push("If you want to see the help of specific command, use `help [command]`");
+      out.push("If you want to see the help of specific command, use `help [COMMAND]`");
       term.rprintln(`Commands:\n${out.join("\n")}`);
     }
   }

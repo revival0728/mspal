@@ -35,7 +35,7 @@ const createWindow = () => {
       console.log("next media not ready");
     });
   });
-  bridge.on("client-connected", (connected: string) => win.webContents.send("client-connected", connected));
+  bridge.on("client-connected", (connected: string, clientId: string) => win.webContents.send("client-connected", connected, clientId));
   bridge.on("client-closed", () => win.webContents.send("client-closed"));
 
   win.loadFile(path.join(__dirname, 'index.html'))
@@ -52,8 +52,11 @@ app.whenReady().then(() => {
   ipcMain.handle("connect", async (_event, url: string, key: string, ssl: boolean) => {
     const success = await client.connect(url, key, ssl);
     if(success) {
-      client.setupSocket(bridge.emit.bind(bridge), console.log);
-      bridge.emit("client-connected", "true");
+      client.setupSocket(bridge.emit.bind(bridge), (...data: string[]) => {
+        const now = new Date();
+        console.log(`[${now.toLocaleTimeString()}]`,...data);
+      });
+      bridge.emit("client-connected", "true", client.clientId);
     } else {
       bridge.emit("client-connected", "false");
     }

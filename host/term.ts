@@ -5,6 +5,7 @@ export class Term {
   #en = new TextEncoder()
   #style = "mspal> "
   #cmd: { [ins: string]: TermCmd } = {}
+  #devMode = Deno.env.get("DEV_MODE") === "true" ? true : false;
   abort: AbortFn = (_) => {};
 
   constructor() {
@@ -30,6 +31,10 @@ export class Term {
     Deno.stdout.writeSync(raw);
   }
   printStyle() {
+    if(this.#devMode) {
+      const now = new Date();
+      this.print(`[${now.toLocaleTimeString()}] `);
+    }
     this.print(this.#style);
   }
   rprintln(data: string) {

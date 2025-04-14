@@ -182,7 +182,6 @@ export default class Client {
           this.#useMRSCK = true;
           const [_start, ...sepChuncks] = params;
           const start = parseInt(_start);
-          //TODO: Fix MRSCK tramsit error issue
           for(let i = 0; i < sepChuncks.length; ++i) {
             if(start + i < this.#chunckCount)
               this.#chuncks[start + i] = sepChuncks[i];

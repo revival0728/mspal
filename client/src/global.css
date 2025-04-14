@@ -5,7 +5,7 @@
     @apply absolute left-0 top-0 h-[90vh] w-screen flex flex-col justify-between items-center z-1;
   }
   .panel-btn {
-    @apply h-fit w-fit;
+    @apply h-fit w-fit disabled:opacity-30;
   }
   .control-panel .play {
     @apply block h-[70px] w-[70px];

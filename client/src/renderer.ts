@@ -15,22 +15,29 @@ const getInfoVersion = async () => {
 
 const setupControlPanel = () => {
   const ppBtn = document.getElementById("play-pause") as HTMLButtonElement;
+  const snBtn = document.getElementById("skip-next") as HTMLButtonElement;
+
+  const setDisable = () => {
+    ppBtn.disabled = true;
+    snBtn.disabled = true;
+  }
+
   ppBtn.addEventListener("click", () => {
+    setDisable();
     const pp = ppBtn.classList.contains("play");
     if(!pp) {
       window.client.socketSend("PAUSE");
-      ppBtn.classList.remove("play");
-      ppBtn.classList.add("pause");
+      // ppBtn.classList.remove("play");
+      // ppBtn.classList.add("pause");
     } else {
       window.client.socketSend("PLAY");
-      ppBtn.classList.add("play");
-      ppBtn.classList.remove("pause");
+      // ppBtn.classList.add("play");
+      // ppBtn.classList.remove("pause");
     }
     console.log("play pause");
   });
-
-  const snBtn = document.getElementById("skip-next") as HTMLButtonElement;
   snBtn.addEventListener("click", () => {
+    setDisable();
     window.client.socketSend("NEXT");
     console.log("skip next");
   });

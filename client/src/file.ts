@@ -59,7 +59,6 @@ export class FS {
     });
   }
   existMedia(media: string): boolean {
-    console.log(this.#cached);
     if(this.#cached.has(media)) return true;
     return fs.existsSync(path.join(this.#hostRoot, media));
   }

@@ -52,7 +52,10 @@ app.whenReady().then(() => {
   ipcMain.handle("connect", async (_event, url: string, key: string, ssl: boolean) => {
     const success = await client.connect(url, key, ssl);
     if(success) {
-      client.setupSocket(bridge.emit.bind(bridge), console.log);
+      client.setupSocket(bridge.emit.bind(bridge), (...data: string[]) => {
+        const now = new Date();
+        console.log(`[${now.toLocaleTimeString()}]`,...data);
+      });
       bridge.emit("client-connected", "true");
     } else {
       bridge.emit("client-connected", "false");

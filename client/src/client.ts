@@ -14,6 +14,7 @@ export default class Client {
   #mediaExt: string = "";
   #mediaName: string = "";
   #chunckCount: number = 0;
+  #useMRSCK: boolean = false; // to prevent race condition like error between MRSCK and MEDCK
   get clientId(): string | null { return this.#clientId }
   get socket(): WebSocket | null { return this.#socket }
 
@@ -97,7 +98,7 @@ export default class Client {
     socket.addEventListener("message", (event) => {
       if(typeof event.data !== 'string') return;
       const ins = event.data.slice(0, 5).trim();
-      logFn(`ins: ${ins}`);
+      // logFn(`ins: ${ins}`);
       const data = event.data.slice(5, event.data.length).trim();
       switch(ins) {
         case "PING":
@@ -126,6 +127,7 @@ export default class Client {
             logFn("params.length !== 3");
             break;
           }
+          this.#useMRSCK = false;
           const [name, _chunckCount, ext] = params.map(s => s.slice(1, s.length - 1));
           emit("next-media-name", name);
           this.#mediaName = name;
@@ -144,7 +146,11 @@ export default class Client {
           break;
         }
         case "MEDCK": {
-          logFn("host: MEDCK");
+          if(this.#useMRSCK) {
+            logFn("host: using MRSCK, skipping MEDCK");
+            return;
+          }
+          // logFn("host: MEDCK");
           const params = data.split(" ");
           if(params === null) {
             logFn("params null");
@@ -163,7 +169,7 @@ export default class Client {
           if(id === this.#chunckCount - 1) {
             storeMedia();
           }
-          logFn(`id: ${id}, data_length: ${chunck.length}`)
+          // logFn(`id: ${id}, data_length: ${chunck.length}`)
           break;
         }
         case "MRSCK": {
@@ -173,13 +179,10 @@ export default class Client {
             logFn("params null");
             break;
           }
-          if(params.length !== 2) {
-            logFn("params.length !== 2");
-            break;
-          }
-          const [_start, chuncks] = params;
+          this.#useMRSCK = true;
+          const [_start, ...sepChuncks] = params;
           const start = parseInt(_start);
-          const sepChuncks = chuncks.split(" ");
+          //TODO: Fix MRSCK tramsit error issue
           for(let i = 0; i < sepChuncks.length; ++i) {
             if(start + i < this.#chunckCount)
               this.#chuncks[start + i] = sepChuncks[i];
@@ -187,7 +190,7 @@ export default class Client {
               logFn("start + i > chunckCount");
           }
           storeMedia();
-          logFn(`start: ${start}, data_length: ${chuncks.length}`)
+          logFn(`start: ${start}, chunck_count: ${sepChuncks.length}`)
           break;
         }
       }
